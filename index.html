@@ -1,0 +1,498 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Herald</title>
+<meta name="description" content="Mockup: a one-page life assistant laid out as a morning newspaper with seven sections.">
+<meta name="theme-color" content="#f4f1ea">
+<script>
+  // theme before paint
+  try { var t = localStorage.getItem('herald-theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+  // iOS zoom lock
+  document.addEventListener('gesturestart', function (e) { e.preventDefault(); }, { passive: false });
+  document.addEventListener('touchmove', function (e) { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #f4f1ea; --paper-2: #faf8f3; --card: #fffdf8; --ink: #1c1b18; --ink-2: #3d3a33;
+    --muted: #6d6a60; --rule: #d9d4c7; --rule-2: #e9e5da; --accent: #1c1b18;
+    --due: #a9521a; --drift: #8a6a12; --ok: #0f6b57;
+    --people: #b5541c; --family: #a3415a; --home: #5c6b2f; --arts: #6b4b8a;
+    --business: #22436b; --scripture: #8a6a12; --pulpit: #6e1f2a;
+    --serif: 'Newsreader', Georgia, 'Times New Roman', serif;
+    --sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --nav-h: 60px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #16150f; --paper-2: #1d1b14; --card: #22201a; --ink: #ece7db; --ink-2: #cdc7b8;
+      --muted: #9b958a; --rule: #3a372e; --rule-2: #2c2a23; --accent: #ece7db;
+      --due: #e08a4e; --drift: #d4b24a; --ok: #5fc3a2;
+      --people: #e08a4e; --family: #e07a93; --home: #a4b86a; --arts: #b79be0;
+      --business: #7ea6dd; --scripture: #d4b24a; --pulpit: #d9707f;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #16150f; --paper-2: #1d1b14; --card: #22201a; --ink: #ece7db; --ink-2: #cdc7b8;
+    --muted: #9b958a; --rule: #3a372e; --rule-2: #2c2a23; --accent: #ece7db;
+    --due: #e08a4e; --drift: #d4b24a; --ok: #5fc3a2;
+    --people: #e08a4e; --family: #e07a93; --home: #a4b86a; --arts: #b79be0;
+    --business: #7ea6dd; --scripture: #d4b24a; --pulpit: #d9707f;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; overflow-x: clip; overscroll-behavior: none; touch-action: manipulation; }
+  body { background: var(--paper); color: var(--ink); font-family: var(--sans); font-size: 15px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+  a { color: inherit; }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+
+  .scroller { min-height: 100vh; }
+  .page { max-width: 1120px; margin: 0 auto; padding: 0 16px 48px; }
+
+  /* masthead */
+  .masthead { padding: 18px 0 10px; border-bottom: 3px double var(--rule); text-align: center; }
+  .masthead .top { display: flex; justify-content: space-between; align-items: center; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+  .masthead .top button { text-transform: inherit; letter-spacing: inherit; font-size: inherit; color: var(--muted); padding: 4px 0; }
+  .masthead h1 { font-family: var(--serif); font-weight: 600; font-size: clamp(44px, 9vw, 84px); line-height: 1; margin: 8px 0 6px; letter-spacing: -.01em; }
+  .masthead h1 a { text-decoration: none; }
+  .masthead .sub { font-family: var(--serif); font-style: italic; color: var(--muted); font-size: 15px; }
+  .ticker { display: flex; gap: 18px; justify-content: center; flex-wrap: wrap; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); margin-top: 10px; padding: 6px 0; font-size: 12px; color: var(--ink-2); }
+  .ticker b { font-weight: 600; }
+  .ticker .due b { color: var(--due); } .ticker .drift b { color: var(--drift); } .ticker .ok b { color: var(--ok); }
+
+  /* section nav (desktop: under masthead; phone: bottom bar) */
+  .secnav { display: flex; gap: 2px; justify-content: space-between; border-bottom: 1px solid var(--rule); overflow-x: auto; touch-action: pan-x pan-y; scrollbar-width: none; }
+  .secnav::-webkit-scrollbar { display: none; }
+  .secnav a { flex: 1 0 auto; text-decoration: none; text-align: center; padding: 10px 10px 9px; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); border-bottom: 3px solid transparent; white-space: nowrap; position: relative; }
+  .secnav a .n { font-weight: 600; }
+  .secnav a.on { color: var(--ink); border-bottom-color: var(--sec, var(--ink)); }
+  .secnav a .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--due); margin-left: 5px; vertical-align: 2px; }
+  .secnav a .dot.drift { background: var(--drift); }
+  .secnav a .glyph { display: none; }
+
+  /* front page grid */
+  .front { display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 0 28px; margin-top: 18px; }
+  .front > * { min-width: 0; }
+  .col { border-left: 1px solid var(--rule); padding-left: 28px; }
+  .lead .kicker { color: var(--sec); }
+  .kicker { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; font-weight: 600; color: var(--muted); margin: 0 0 6px; }
+  .kicker a { text-decoration: none; }
+  .lead h2 { font-family: var(--serif); font-weight: 500; font-size: clamp(30px, 4.2vw, 46px); line-height: 1.08; margin: 0 0 10px; letter-spacing: -.01em; }
+  .lead p.dek { font-family: var(--serif); font-size: 19px; line-height: 1.35; color: var(--ink-2); margin: 0 0 14px; }
+  .lead .byline { font-size: 12px; color: var(--muted); margin-bottom: 14px; }
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .btn { border: 1px solid var(--ink); border-radius: 999px; padding: 7px 14px; font-size: 13px; font-weight: 500; }
+  .btn.fill { background: var(--ink); color: var(--paper); }
+  .btn.quiet { border-color: var(--rule); color: var(--muted); }
+
+  .story { padding: 14px 0; border-bottom: 1px solid var(--rule-2); }
+  .story:last-child { border-bottom: 0; }
+  .story h3 { font-family: var(--serif); font-weight: 500; font-size: 21px; line-height: 1.2; margin: 0 0 4px; }
+  .story h3 a { text-decoration: none; }
+  .story p { margin: 0; color: var(--ink-2); font-size: 14px; }
+  .story .meta { font-size: 12px; color: var(--muted); margin-top: 6px; display: flex; gap: 10px; flex-wrap: wrap; }
+  .tag { display: inline-block; font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; padding: 1px 7px; border-radius: 3px; border: 1px solid currentColor; }
+  .tag.due { color: var(--due); } .tag.drift { color: var(--drift); } .tag.ok { color: var(--ok); } .tag.sec { color: var(--sec); }
+
+  .boxhead { font-family: var(--serif); font-weight: 600; font-size: 15px; letter-spacing: .02em; text-transform: uppercase; border-top: 2px solid var(--ink); border-bottom: 1px solid var(--rule); padding: 6px 0; margin: 18px 0 6px; }
+  .boxhead:first-child { margin-top: 0; }
+  .week { list-style: none; margin: 0; padding: 0; }
+  .week li { display: grid; grid-template-columns: 44px 1fr auto; gap: 10px; padding: 8px 0; border-bottom: 1px dotted var(--rule); font-size: 14px; align-items: baseline; }
+  .week li:last-child { border-bottom: 0; }
+  .week .d { font-weight: 600; font-size: 12px; letter-spacing: .06em; color: var(--muted); }
+  .week .d.today { color: var(--due); }
+  .week .t { font-family: var(--serif); font-size: 16px; }
+  .week .t small { font-family: var(--sans); font-size: 12px; color: var(--muted); margin-left: 6px; }
+  .week .r { font-size: 12px; color: var(--muted); }
+
+  .notices { font-size: 13px; color: var(--muted); }
+  .notices li { padding: 5px 0; border-bottom: 1px dotted var(--rule-2); }
+  .notices ul { list-style: none; margin: 0; padding: 0; }
+
+  .letters textarea { width: 100%; min-height: 72px; resize: vertical; border: 1px solid var(--rule); background: var(--card); color: var(--ink); border-radius: 6px; padding: 10px; font: inherit; font-size: 14px; }
+  .letters .row { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 8px; }
+  .letters .hint { font-size: 12px; color: var(--muted); }
+  .letters ul { list-style: none; padding: 0; margin: 10px 0 0; }
+  .letters li { font-family: var(--serif); font-size: 15px; padding: 6px 0; border-top: 1px dotted var(--rule); }
+  .letters li small { display: block; font-family: var(--sans); font-size: 11px; color: var(--muted); }
+
+  /* section page */
+  .sechead { margin-top: 22px; border-bottom: 1px solid var(--rule); padding-bottom: 12px; display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .sechead h2 { font-family: var(--serif); font-weight: 500; font-size: clamp(36px, 6vw, 56px); line-height: 1; margin: 0; }
+  .sechead .kicker { color: var(--sec); }
+  .sechead .stand { font-family: var(--serif); font-style: italic; color: var(--muted); font-size: 16px; margin: 4px 0 0; max-width: 56ch; }
+  .tabs { display: flex; gap: 0; margin-top: 0; border-bottom: 1px solid var(--rule); overflow-x: auto; touch-action: pan-x pan-y; scrollbar-width: none; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tabs button { padding: 12px 14px 10px; font-size: 13px; font-weight: 500; color: var(--muted); border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; }
+  .tabs button.on { color: var(--ink); border-bottom-color: var(--sec); }
+  .tabs button .prim { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-left: 6px; opacity: .8; }
+  .view { margin-top: 18px; display: grid; grid-template-columns: 2fr 1fr; gap: 0 28px; }
+  .view > * { min-width: 0; }
+  .aside { border-left: 1px solid var(--rule); padding-left: 28px; }
+
+  /* loop list */
+  .loops { list-style: none; margin: 0; padding: 0; }
+  .loops li { display: grid; grid-template-columns: 56px 1fr auto; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--rule-2); align-items: start; }
+  .loops .when { font-size: 12px; font-weight: 600; letter-spacing: .06em; color: var(--muted); line-height: 1.3; }
+  .loops .when b { display: block; font-size: 15px; color: var(--ink); }
+  .loops .when.today b { color: var(--due); }
+  .loops .title { font-family: var(--serif); font-size: 20px; line-height: 1.2; }
+  .loops .sub { font-size: 13px; color: var(--ink-2); margin-top: 3px; }
+  .loops .last { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .loops .side { text-align: right; display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
+  .beat { font-size: 12px; color: var(--muted); }
+  .beat .bar { display: inline-block; width: 64px; height: 4px; background: var(--rule); border-radius: 2px; vertical-align: middle; margin-left: 6px; overflow: hidden; }
+  .beat .bar i { display: block; height: 100%; background: var(--sec); }
+
+  /* log */
+  .log { list-style: none; margin: 0; padding: 0; }
+  .log li { padding: 14px 0; border-bottom: 1px solid var(--rule-2); display: grid; grid-template-columns: 92px 1fr; gap: 14px; }
+  .log .date { font-size: 12px; color: var(--muted); font-weight: 500; line-height: 1.5; }
+  .log .subj { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; font-weight: 600; color: var(--sec); }
+  .log .body { font-family: var(--serif); font-size: 17px; line-height: 1.4; margin-top: 2px; }
+  .log .photo { margin-top: 8px; height: 110px; border-radius: 6px; background: linear-gradient(135deg, var(--rule-2), var(--rule)); display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 12px; }
+  .log .ms { color: var(--ok); }
+
+  /* backlog board */
+  .board { display: grid; grid-template-columns: repeat(var(--cols, 3), 1fr); gap: 16px; }
+  .lane h4 { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px; padding-bottom: 6px; border-bottom: 1px solid var(--rule); display: flex; justify-content: space-between; }
+  .card { background: var(--card); border: 1px solid var(--rule-2); border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; }
+  .card .t { font-family: var(--serif); font-size: 16px; line-height: 1.25; }
+  .card .m { font-size: 12px; color: var(--muted); margin-top: 4px; display: flex; justify-content: space-between; gap: 8px; }
+  .card a { color: var(--sec); text-decoration: none; }
+
+  .stat { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px; }
+  .stat div { background: var(--card); border: 1px solid var(--rule-2); border-radius: 8px; padding: 10px 12px; }
+  .stat b { display: block; font-family: var(--serif); font-size: 28px; line-height: 1; }
+  .stat span { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+
+  .prim-note { font-size: 12px; color: var(--muted); border: 1px dashed var(--rule); border-radius: 6px; padding: 8px 10px; margin-top: 18px; }
+  .prim-note b { color: var(--ink-2); }
+
+  .foot { margin-top: 36px; border-top: 3px double var(--rule); padding-top: 10px; font-size: 12px; color: var(--muted); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+
+  /* phone */
+  @media (max-width: 760px) {
+    body { position: fixed; inset: 0; }
+    .scroller { height: 100%; overflow-y: auto; overscroll-behavior: none; touch-action: pan-y; -webkit-overflow-scrolling: touch; }
+    .page { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 24px); }
+    .masthead { padding-top: calc(10px + env(safe-area-inset-top)); }
+    .masthead h1 { font-size: 46px; }
+    .ticker { gap: 12px; font-size: 11px; }
+    .secnav { position: fixed; left: 0; right: 0; bottom: 0; height: calc(var(--nav-h) + env(safe-area-inset-bottom)); padding-bottom: env(safe-area-inset-bottom); background: var(--paper-2); border-top: 1px solid var(--rule); border-bottom: 0; z-index: 5; }
+    .secnav a { flex: 1 0 auto; min-width: 64px; padding: 8px 6px 6px; font-size: 9px; letter-spacing: .04em; border-bottom: 0; }
+    .secnav a .glyph { display: block; font-family: var(--serif); font-size: 20px; line-height: 1.1; color: var(--ink); }
+    .secnav a.on .glyph { color: var(--sec); }
+    .secnav a .n { display: block; font-weight: 500; }
+    .secnav a .dot { position: absolute; top: 6px; right: 14px; margin: 0; }
+    .front, .view { grid-template-columns: 1fr; }
+    .col, .aside { border-left: 0; padding-left: 0; border-top: 1px solid var(--rule); margin-top: 14px; padding-top: 4px; }
+    .lead h2 { font-size: 32px; }
+    .lead p.dek { font-size: 17px; }
+    .board { --cols: 1 !important; }
+    .loops li { grid-template-columns: 48px 1fr; }
+    .loops .side { grid-column: 2; flex-direction: row; justify-content: flex-start; align-items: center; }
+    .log li { grid-template-columns: 1fr; gap: 2px; }
+    .stat b { font-size: 22px; }
+    .sechead { margin-top: 14px; }
+  }
+
+  /* preview frame (desktop only) */
+  .frame-btn { position: fixed; right: 16px; bottom: 16px; z-index: 9; background: var(--ink); color: var(--paper); border-radius: 999px; padding: 9px 14px; font-size: 13px; font-weight: 500; box-shadow: 0 6px 20px rgba(0,0,0,.18); }
+  @media (max-width: 760px) { .frame-btn { display: none; } }
+  body.framed { position: static; background: #2a2823; }
+  body.framed .scroller, body.framed .secnav { display: none; }
+  .phone { width: 390px; height: 844px; margin: 32px auto; border-radius: 44px; background: #0b0b0b; padding: 12px; box-shadow: 0 30px 80px rgba(0,0,0,.5); position: relative; }
+  .phone iframe { width: 100%; height: 100%; border: 0; border-radius: 34px; background: var(--paper); }
+  .phone .notch { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); width: 120px; height: 30px; background: #0b0b0b; border-radius: 0 0 18px 18px; z-index: 2; }
+  .frame-bar { position: fixed; top: 14px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; z-index: 9; }
+  .frame-bar button { background: #f4f1ea; color: #1c1b18; border-radius: 999px; padding: 8px 14px; font-size: 13px; font-weight: 500; }
+</style>
+</head>
+<body>
+<div class="scroller" id="scroller">
+  <div class="page">
+    <header class="masthead">
+      <div class="top">
+        <span id="dateline"></span>
+        <span>Vol. 1 · Mockup</span>
+        <button id="themeBtn" aria-label="Toggle theme">Theme: System</button>
+      </div>
+      <h1><a href="#/">The Herald</a></h1>
+      <div class="sub">What today asks of you, in seven sections. Delivered, not browsed.</div>
+      <div class="ticker" id="ticker"></div>
+    </header>
+    <nav class="secnav" id="secnav"></nav>
+    <main id="main"></main>
+    <footer class="foot">
+      <span>Sample data from the loop drafts · nothing here is saved</span>
+      <span>Structure: Loop · Log · Backlog. Sections are filters.</span>
+    </footer>
+  </div>
+</div>
+<button class="frame-btn" id="frameBtn">Phone preview</button>
+
+<script>
+// ---------- data ----------
+const TODAY = new Date(2026, 10, 10); // Tue 10 Nov 2026 (mockup is pinned so headlines make sense)
+const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+const SECTIONS = [
+  { id:'people',    name:'People',          sub:'Discipleship', glyph:'P', stand:'Who you are forming, and when you next see them.',
+    tabs:[['This Week','loop'],['Mentoring','loop'],['Notes','log']] },
+  { id:'family',    name:'Family',          sub:'Family',       glyph:'F', stand:'Memories first. The rhythm second. Nothing to optimise.',
+    tabs:[['Memories','log'],['Milestones','log'],['Rhythms','loop']] },
+  { id:'home',      name:'Home & Garden',   sub:'Home',         glyph:'H', stand:'Routines Patch already keeps, chores on a cycle, and the long list of improvements.',
+    tabs:[['Routines','loop'],['Chores','loop'],['Improvements','backlog']] },
+  { id:'arts',      name:'Arts & Leisure',  sub:'Hobbies',      glyph:'A', stand:'What you shipped, what you built, what you practised.',
+    tabs:[['Apps','backlog'],['Gundam','backlog'],['Music','log'],['Drawing','log']] },
+  { id:'business',  name:'Business',        sub:'Work',         glyph:'B', stand:'Month-end, the inbox in numbers, and the Work bucket of your tasks.',
+    tabs:[['Month-End','loop'],['Emails','stat'],['Tasks','backlog']] },
+  { id:'scripture', name:'Scripture',       sub:'Bible',        glyph:'S', stand:'Where you are in the reading, and what the text has been saying.',
+    tabs:[['Reading','loop'],['Studies','log'],['Words','log']] },
+  { id:'pulpit',    name:'Pulpit',          sub:'Church',       glyph:'C', stand:'Topics become series, series become Wednesdays.',
+    tabs:[['Topics','backlog'],['Series','loop'],['Sermons','backlog']] },
+];
+
+// Loops: sec, tab, title, day (0-6) or null, time, role, status: due|drift|ok, beat [n,total], last (days since touch), note
+const LOOPS = [
+  { sec:'people', tab:'This Week', title:'ILDG', day:2, time:'18:00', role:'attend', status:'ok', last:7 },
+  { sec:'people', tab:'This Week', title:'PrayClark', day:3, time:'17:30', role:'preach', status:'due', beat:[3,7], arc:'Jacob - A Series in Genesis', last:6,
+    note:'Week 3 is Jacob at Bethel. No outline drafted yet. Monday was the prep window.' },
+  { sec:'people', tab:'This Week', title:'His Life Midweek', day:4, time:'19:00', role:'attend', status:'ok', last:5 },
+  { sec:'people', tab:'This Week', title:'Saints Life Group', day:6, time:'09:30', role:'lead', status:'due', beat:[1,6], arc:'New arc, undecided', last:3,
+    note:'Beatitudes finished 3 Oct. Leading or assigning this Saturday? Decide by Wednesday while assigning is still an option.' },
+  { sec:'people', tab:'Mentoring', title:'Robin', time:'monthly', role:'disciple', status:'drift', last:34, note:'Last met 7 Oct. Was working through Romans 8 with him.' },
+  { sec:'people', tab:'Mentoring', title:'France', time:'monthly', role:'disciple', status:'ok', last:12, note:'Coffee 29 Oct. Follow up: the book he asked about.' },
+  { sec:'people', tab:'Mentoring', title:'Elaine', time:'monthly', role:'disciple', status:'ok', last:19 },
+  { sec:'family', tab:'Rhythms', title:'SAM Singapore Math', day:2, time:'17:00', role:'Judah', status:'due', last:7, note:'Tuesday class. Bring the workbook.' },
+  { sec:'family', tab:'Rhythms', title:'Call Daddy', time:'weekly', role:'Sunday', status:'drift', last:11, note:'Usually Sunday after church. Missed last week.' },
+  { sec:'family', tab:'Rhythms', title:'Date night', time:'fortnightly', status:'ok', last:6 },
+  { sec:'home', tab:'Routines', title:'Take AmLife', time:'daily', role:'from Patch', status:'ok', beat:[23,30], last:0, note:'23-day streak.' },
+  { sec:'home', tab:'Routines', title:'Posture routine', time:'daily', role:'from Patch', status:'drift', beat:[4,30], last:2, note:'Skipped two days.' },
+  { sec:'home', tab:'Routines', title:'Evening tidy', time:'daily', role:'from Patch', status:'ok', beat:[9,30], last:0 },
+  { sec:'home', tab:'Chores', title:'Grocery run', day:6, time:'weekly', role:'Grocer list: 14 items', status:'ok', last:4 },
+  { sec:'home', tab:'Chores', title:'Bins out', day:4, time:'weekly', status:'ok', last:5 },
+  { sec:'home', tab:'Chores', title:'Car service', time:'every 6 months', status:'drift', last:201, note:'Due since September.' },
+  { sec:'business', tab:'Month-End', title:'October month-end', time:'monthly', role:'day 2 of 5', status:'due', beat:[2,5], last:1,
+    note:'Done: GL export, wages journal. Next: Weldclass dashboard refresh, then the review sheets.' },
+  { sec:'scripture', tab:'Reading', title:'Reading plan', time:'daily', role:'Isaiah 40', status:'due', beat:[283,365], last:1, note:'Day 283. Yesterday read, today not yet.' },
+  { sec:'pulpit', tab:'Series', title:'Jacob - A Series in Genesis', time:'Wednesdays', role:'PrayClark', status:'due', beat:[3,7], last:6, note:'Beats: born, birthright, blessing, Laban, called home, wrestling, reunion.' },
+  { sec:'pulpit', tab:'Series', title:'Beatitudes', time:'Saturdays', role:'Saints', status:'ok', beat:[8,8], last:38, note:'Complete 3 Oct. Manuscripts in 02. Manuscripts.' },
+];
+
+const LOGS = [
+  { sec:'people', tab:'Notes', date:'29 Oct', subj:'France', body:'Asked good questions about assurance. Pointed him to 1 John 5. He wants a book; send the Packer.' },
+  { sec:'people', tab:'Notes', date:'7 Oct', subj:'Robin', body:'Romans 8:28. He is carrying a lot at work. Pray for the job decision before we meet again.' },
+  { sec:'family', tab:'Memories', date:'Today', subj:'Judah', body:'Counted to twenty on the stairs, skipped fourteen, did not care.', photo:true },
+  { sec:'family', tab:'Memories', date:'8 Nov', subj:'The baby', body:'First real laugh, at the ceiling fan of all things.' },
+  { sec:'family', tab:'Memories', date:'2 Nov', subj:'Everyone', body:'Sunday lunch ran to three hours. Nobody looked at a phone.' },
+  { sec:'family', tab:'Milestones', date:'8 Nov', subj:'The baby', body:'First laugh.', ms:true },
+  { sec:'family', tab:'Milestones', date:'14 Sep', subj:'Judah', body:'First SAM class. Did not cry. I nearly did.', ms:true },
+  { sec:'arts', tab:'Music', date:'6 Nov', subj:'Drums', body:'Twenty minutes on the backbeat. Bass drum still rushes the two.' },
+  { sec:'arts', tab:'Drawing', date:'31 Oct', subj:'Sketchbook', body:'Hands again. Fourth page of hands. One of them finally looks like a hand.' },
+  { sec:'scripture', tab:'Studies', date:'3 Nov', subj:'John 5', body:'The healing on the Sabbath. The man did not know who healed him until later. Grace arrives before recognition.' },
+  { sec:'scripture', tab:'Studies', date:'20 Oct', subj:'Matthew 22', body:'The wedding garment. Invitation is wide; the garment is given, not brought.' },
+  { sec:'scripture', tab:'Words', date:'3 Oct', subj:'hagios', body:'Saints: not the morally finished, but the set-apart. Used of the whole church at Corinth, which says something.' },
+];
+
+const BACKLOGS = {
+  'home/Improvements': { lanes:['Idea','Planned','Done'], items:[
+    { t:'Shelf over the desk', s:'Idea', m:'~P2,500' }, { t:'Fix the gate latch', s:'Planned', m:'this weekend' },
+    { t:'Blackout curtain, nursery', s:'Planned', m:'~P1,800' }, { t:'Label the pantry bins', s:'Done', m:'Oct' } ] },
+  'arts/Apps': { lanes:['Idea','Building','Live'], items:[
+    { t:'Herald (this)', s:'Building', m:'mockup' }, { t:'Grocer', s:'Live', m:'thekidinside.github.io/grocer' },
+    { t:'Ministry Scheduler', s:'Live', m:'ministry-sched-ph.web.app' }, { t:'Chess Coach', s:'Live', m:'thekidinside.github.io/chess-coach' },
+    { t:'Ledgerly', s:'Live', m:'ledgerly-web-five.vercel.app' }, { t:'Patch', s:'Live', m:'habit tracker' },
+    { t:'Stash', s:'Live', m:'watch later' }, { t:'SAINTS', s:'Live', m:'v0.3.0, desktop' }, { t:'Kaya (parenting coach)', s:'Idea', m:'prompt only' } ] },
+  'arts/Gundam': { lanes:['Wishlist','Bought','Building','Built'], items:[
+    { t:'RG Nu Gundam', s:'Wishlist', m:'' }, { t:'HG Barbatos Lupus', s:'Bought', m:'since Aug' },
+    { t:'MG Freedom 2.0', s:'Building', m:'legs done' }, { t:'HG Zaku II', s:'Built', m:'Jul' } ] },
+  'business/Tasks': { lanes:['Next','Waiting','Done this week'], items:[
+    { t:'Refresh Weldclass dashboard (Oct)', s:'Next', m:'month-end' }, { t:'QMT cross-charge 490001 check', s:'Next', m:'' },
+    { t:'Frank: dept P&L allocation reply', s:'Waiting', m:'since 6 Nov' }, { t:'Wages journal posted', s:'Done this week', m:'Mon' } ] },
+  'pulpit/Topics': { lanes:['Seed','Shaping','Scheduled'], items:[
+    { t:'Lament before hope (Psalms)', s:'Seed', m:'from Preaching Ideas' }, { t:'The hands of Jesus', s:'Seed', m:'' },
+    { t:'What Saints study next', s:'Shaping', m:'decide Wed' }, { t:'Jacob at Bethel', s:'Scheduled', m:'Wed 11 Nov' } ] },
+  'pulpit/Sermons': { lanes:['Idea','Drafted','Preached'], items:[
+    { t:'Jacob 3: Bethel', s:'Idea', m:'Wed 11 Nov' }, { t:'Jacob 4: Laban', s:'Idea', m:'Wed 18 Nov' },
+    { t:'Jacob 2: The blessing', s:'Preached', m:'4 Nov' }, { t:'Jacob 1: Born grasping', s:'Preached', m:'28 Oct' } ] },
+};
+
+const EMAILS = { reply:4, action:7, read:12 };
+const LETTERS = [];
+
+// ---------- helpers ----------
+const $ = (s, r=document) => r.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const secOf = id => SECTIONS.find(s => s.id === id);
+const todayIdx = TODAY.getDay();
+function dayLabel(d) { if (d == null) return ''; return d === todayIdx ? 'Today' : DAYS[d]; }
+function daysUntil(d) { return (d - todayIdx + 7) % 7; }
+function sortLoops(a, b) {
+  const rank = l => l.status === 'due' ? (l.day != null ? daysUntil(l.day) : 1) : l.status === 'drift' ? 10 : 20 + (l.day != null ? daysUntil(l.day) : 5);
+  return rank(a) - rank(b);
+}
+function lastText(n) { return n === 0 ? 'touched today' : n === 1 ? 'yesterday' : `${n} days quiet`; }
+function pill(status) { return status === 'due' ? '<span class="tag due">Due</span>' : status === 'drift' ? '<span class="tag drift">Drifting</span>' : '<span class="tag ok">On track</span>'; }
+
+// ---------- headline writer ----------
+function headline(l) {
+  const sec = secOf(l.sec);
+  if (l.status === 'drift') {
+    return { h: `${l.title} has gone quiet`, p: `${lastText(l.last)}. ${l.note || ''}`.trim() };
+  }
+  const when = l.day != null ? (l.day === todayIdx ? 'today' : `on ${DAYS[l.day]}day`.replace('Tueday','Tuesday').replace('Wedday','Wednesday').replace('Thuday','Thursday').replace('Satday','Saturday').replace('Sunday','Sunday').replace('Monday','Monday').replace('Friday','Friday')) : '';
+  if (l.beat && l.arc) return { h: `${l.title} ${when}: ${l.arc.split(' - ')[0]}, week ${l.beat[0]} of ${l.beat[1]}`, p: l.note || '' };
+  if (l.beat) return { h: `${l.title}, ${l.role || `${l.beat[0]} of ${l.beat[1]}`}`, p: l.note || '' };
+  return { h: `${l.title} ${when}${l.time && l.day != null ? ` at ${l.time}` : ''}`, p: l.note || (l.role ? `Role: ${l.role}.` : '') };
+}
+
+// ---------- render: front ----------
+function renderFront() {
+  const active = LOOPS.filter(l => l.status !== 'ok').sort(sortLoops);
+  const lead = active[0];
+  const rest = active.slice(1);
+  const bySec = {};
+  for (const l of rest) (bySec[l.sec] ||= []).push(l);
+  const quiet = SECTIONS.filter(s => !LOOPS.some(l => l.sec === s.id && l.status !== 'ok'));
+  const week = LOOPS.filter(l => l.day != null).sort((a,b) => daysUntil(a.day) - daysUntil(b.day));
+  const latestLogs = LOGS.slice(0, 3);
+
+  const L = headline(lead); const ls = secOf(lead.sec);
+  let html = `<div class="front">
+    <section class="lead" style="--sec:var(--${ls.id})">
+      <p class="kicker"><a href="#/${ls.id}">${ls.name} · ${ls.sub}</a></p>
+      <h2>${esc(L.h)}</h2>
+      <p class="dek">${esc(L.p)}</p>
+      <div class="byline">${pill(lead.status)} &nbsp; ${esc(lastText(lead.last))}${lead.time ? ` · ${esc(lead.time)}` : ''}</div>
+      <div class="actions"><button class="btn fill">Draft it now</button><button class="btn">Move to next week</button><button class="btn quiet">Snooze to Sunday</button></div>
+    </section>
+    <section class="col">
+      <div class="boxhead">Also today</div>`;
+  for (const [sid, ls2] of Object.entries(bySec)) {
+    const s = secOf(sid);
+    for (const l of ls2) { const h = headline(l);
+      html += `<article class="story" style="--sec:var(--${s.id})">
+        <p class="kicker"><a href="#/${s.id}">${s.name}</a></p>
+        <h3><a href="#/${s.id}">${esc(h.h)}</a></h3>
+        <p>${esc(h.p)}</p>
+        <div class="meta">${pill(l.status)}<span>${esc(lastText(l.last))}</span></div></article>`;
+    }
+  }
+  html += `</section><section class="col">
+      <div class="boxhead">This week</div><ul class="week">`;
+  for (const l of week) {
+    const s = secOf(l.sec);
+    html += `<li style="--sec:var(--${s.id})"><span class="d ${l.day === todayIdx ? 'today' : ''}">${esc(dayLabel(l.day).toUpperCase())}</span><span class="t">${esc(l.title)}<small>${esc(l.time)}</small></span><span class="r">${esc(l.role || '')}</span></li>`;
+  }
+  html += `</ul>
+      <div class="boxhead">Society</div>`;
+  for (const g of latestLogs) { const s = secOf(g.sec);
+    html += `<article class="story" style="--sec:var(--${s.id})"><p class="kicker"><a href="#/${s.id}">${s.name} · ${esc(g.subj)}</a></p><p style="font-family:var(--serif);font-size:16px;color:var(--ink)">${esc(g.body)}</p><div class="meta"><span>${esc(g.date)}</span></div></article>`;
+  }
+  html += `<div class="boxhead">Nothing to report</div><div class="notices"><ul>`;
+  for (const s of quiet) html += `<li>${s.name}: all loops on track. <a href="#/${s.id}">Open</a></li>`;
+  if (!quiet.length) html += `<li>Every section has something to say today.</li>`;
+  html += `</ul></div>
+      <div class="boxhead">Letters to the editor</div>
+      <div class="letters"><textarea id="letter" placeholder="Capture a thought. Ezra files it into the vault later."></textarea>
+        <div class="row"><span class="hint">${LETTERS.length} waiting to be printed</span><button class="btn" id="sendLetter">Send</button></div>
+        <ul>${LETTERS.map(x => `<li>${esc(x.body)}<small>${esc(x.when)}</small></li>`).join('')}</ul></div>
+    </section></div>`;
+  $('#main').innerHTML = html;
+  $('#sendLetter').onclick = () => { const v = $('#letter').value.trim(); if (!v) return; LETTERS.unshift({ body:v, when:'just now · mockup, not saved' }); renderFront(); };
+}
+
+// ---------- render: section ----------
+const tabState = {};
+function renderSection(id) {
+  const s = secOf(id); if (!s) return renderFront();
+  const tab = tabState[id] || s.tabs[0][0];
+  const kind = s.tabs.find(t => t[0] === tab)[1];
+  const due = LOOPS.filter(l => l.sec === id && l.status === 'due').length;
+  const drift = LOOPS.filter(l => l.sec === id && l.status === 'drift').length;
+  let html = `<div style="--sec:var(--${s.id})">
+    <header class="sechead"><div><p class="kicker">${s.sub} · ${due} due · ${drift} drifting</p><h2>${s.name}</h2><p class="stand">${esc(s.stand)}</p></div>
+      <div class="actions"><button class="btn quiet">+ Add</button></div></header>
+    <nav class="tabs">${s.tabs.map(t => `<button data-tab="${esc(t[0])}" class="${t[0] === tab ? 'on' : ''}">${esc(t[0])}<span class="prim">${t[1] === 'stat' ? 'feed' : t[1]}</span></button>`).join('')}</nav>
+    <div class="view"><div>`;
+
+  if (kind === 'loop') {
+    const list = LOOPS.filter(l => l.sec === id && l.tab === tab).sort(sortLoops);
+    html += `<ul class="loops">` + list.map(l => `<li>
+      <div class="when ${l.day === todayIdx ? 'today' : ''}">${l.day != null ? `<b>${esc(dayLabel(l.day))}</b>${esc(l.time)}` : `<b>${esc((l.time || '').split(' ')[0])}</b>${esc((l.time || '').split(' ').slice(1).join(' '))}`}</div>
+      <div><div class="title">${esc(l.title)}</div>${l.note ? `<div class="sub">${esc(l.note)}</div>` : ''}<div class="last">${esc(lastText(l.last))}${l.role ? ` · ${esc(l.role)}` : ''}${l.arc ? ` · ${esc(l.arc)}` : ''}</div></div>
+      <div class="side">${pill(l.status)}${l.beat ? `<span class="beat">${l.beat[0]} / ${l.beat[1]}<span class="bar"><i style="width:${Math.round(100*l.beat[0]/l.beat[1])}%"></i></span></span>` : ''}</div></li>`).join('') + `</ul>`;
+    if (!list.length) html += `<p class="notices">Nothing here yet.</p>`;
+  } else if (kind === 'log') {
+    const list = LOGS.filter(g => g.sec === id && g.tab === tab);
+    html += `<ul class="log">` + list.map(g => `<li><div class="date">${esc(g.date)}</div><div><div class="subj">${esc(g.subj)}${g.ms ? ' <span class="ms">· milestone</span>' : ''}</div><div class="body">${esc(g.body)}</div>${g.photo ? `<div class="photo">photo</div>` : ''}</div></li>`).join('') + `</ul>`;
+    if (!list.length) html += `<p class="notices">No entries yet. The first one is the hardest; make it one line.</p>`;
+  } else if (kind === 'backlog') {
+    const b = BACKLOGS[`${id}/${tab}`];
+    if (b) {
+      html += `<div class="board" style="--cols:${b.lanes.length}">` + b.lanes.map(lane => {
+        const items = b.items.filter(i => i.s === lane);
+        return `<div class="lane"><h4><span>${esc(lane)}</span><span>${items.length}</span></h4>` + items.map(i => `<div class="card"><div class="t">${esc(i.t)}</div><div class="m"><span>${esc(i.m)}</span></div></div>`).join('') + `</div>`;
+      }).join('') + `</div>`;
+    } else html += `<p class="notices">Nothing here yet.</p>`;
+  } else if (kind === 'stat') {
+    html += `<div class="stat"><div><b style="color:var(--due)">${EMAILS.reply}</b><span>Reply</span></div><div><b>${EMAILS.action}</b><span>Action</span></div><div><b>${EMAILS.read}</b><span>Read</span></div></div>
+      <p class="notices">Counts only. Weldclass mail stays on the laptop; Outlook Triage sorts it, this page just reports the pile.</p>`;
+  }
+
+  html += `</div><aside class="aside">
+      <div class="boxhead">In this section</div><ul class="notices">`;
+  for (const l of LOOPS.filter(l => l.sec === id && l.status !== 'ok').sort(sortLoops)) html += `<li>${esc(headline(l).h)}</li>`;
+  if (!LOOPS.some(l => l.sec === id && l.status !== 'ok')) html += `<li>All on track.</li>`;
+  html += `</ul>
+      <div class="prim-note"><b>How this tab is built:</b> ${kind === 'loop' ? 'a <b>Loop</b>. Cadence gives next due; last touch gives drift.' : kind === 'log' ? 'a <b>Log</b>. Dated entries on a subject. Writing one bumps that subject\'s last touch.' : kind === 'backlog' ? 'a <b>Backlog</b>. Items with a status, left to right.' : 'a read-only <b>feed</b> from another tool.'}</div>
+    </aside></div></div>`;
+  $('#main').innerHTML = html;
+  $('.tabs').onclick = e => { const b = e.target.closest('button[data-tab]'); if (!b) return; tabState[id] = b.dataset.tab; renderSection(id); };
+}
+
+// ---------- chrome ----------
+function renderChrome(current) {
+  const due = LOOPS.filter(l => l.status === 'due').length, drift = LOOPS.filter(l => l.status === 'drift').length, ok = LOOPS.filter(l => l.status === 'ok').length;
+  $('#dateline').textContent = TODAY.toLocaleDateString('en-AU', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+  $('#ticker').innerHTML = `<span class="due"><b>${due}</b> due</span><span class="drift"><b>${drift}</b> drifting</span><span class="ok"><b>${ok}</b> on track</span><span><b>${LOOPS.length}</b> loops</span><span>Manila 06:10</span>`;
+  $('#secnav').innerHTML = SECTIONS.map(s => {
+    const d = LOOPS.some(l => l.sec === s.id && l.status === 'due'), dr = LOOPS.some(l => l.sec === s.id && l.status === 'drift');
+    return `<a href="#/${s.id}" class="${current === s.id ? 'on' : ''}" style="--sec:var(--${s.id})"><span class="glyph">${s.glyph}</span><span class="n">${s.name.split(' ')[0]}</span>${d ? '<span class="dot"></span>' : dr ? '<span class="dot drift"></span>' : ''}</a>`;
+  }).join('');
+}
+
+function route() {
+  const h = location.hash.replace(/^#\/?/, '');
+  renderChrome(h);
+  if (!h) renderFront(); else renderSection(h);
+  $('#scroller').scrollTop = 0;
+}
+window.addEventListener('hashchange', route);
+
+// theme toggle
+const themeBtn = $('#themeBtn');
+function themeLabel() { const t = document.documentElement.dataset.theme; themeBtn.textContent = 'Theme: ' + (t ? t[0].toUpperCase() + t.slice(1) : 'System'); }
+themeBtn.onclick = () => { const cur = document.documentElement.dataset.theme || 'system'; const next = cur === 'system' ? 'light' : cur === 'light' ? 'dark' : 'system';
+  if (next === 'system') delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = next;
+  try { if (next === 'system') localStorage.removeItem('herald-theme'); else localStorage.setItem('herald-theme', next); } catch (e) {} themeLabel(); };
+themeLabel();
+
+// phone preview frame
+const params = new URLSearchParams(location.search);
+if (params.get('frame') === 'phone') {
+  document.body.classList.add('framed');
+  document.body.insertAdjacentHTML('beforeend', `<div class="frame-bar"><button onclick="location.href=location.pathname+location.hash">Desktop view</button></div><div class="phone"><div class="notch"></div><iframe src="${location.pathname}${location.hash}" title="Phone preview"></iframe></div>`);
+  $('#frameBtn').remove();
+} else {
+  $('#frameBtn').onclick = () => { location.href = location.pathname + '?frame=phone' + location.hash; };
+  route();
+}
+</script>
+</body>
+</html>
