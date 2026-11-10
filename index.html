@@ -72,6 +72,9 @@
   .secnav a .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--due); margin-left: 5px; vertical-align: 2px; }
   .secnav a .dot.drift { background: var(--drift); }
   .secnav a .glyph { display: none; }
+  .secnav a .n.short { display: none; }
+  .masthead .top .brief { display: none; }
+  @media (max-width: 760px) { .masthead .top .brief { display: inline; } }
 
   /* front page grid */
   .front { display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 0 28px; margin-top: 18px; }
@@ -183,7 +186,10 @@
     .masthead h1 { font-size: 46px; }
     .ticker { gap: 12px; font-size: 11px; }
     .secnav { position: fixed; left: 0; right: 0; bottom: 0; height: calc(var(--nav-h) + env(safe-area-inset-bottom)); padding-bottom: env(safe-area-inset-bottom); background: var(--paper-2); border-top: 1px solid var(--rule); border-bottom: 0; z-index: 5; }
-    .secnav a { flex: 1 0 auto; min-width: 64px; padding: 8px 6px 6px; font-size: 9px; letter-spacing: .04em; border-bottom: 0; }
+    .secnav a { flex: 1 1 0; min-width: 0; padding: 8px 2px 6px; font-size: 9px; letter-spacing: .02em; border-bottom: 0; }
+    .secnav a .n { display: none; } .secnav a .n.short { display: block; }
+    .masthead .top span.vol { display: none; }
+    .masthead .top .long { display: none; }
     .secnav a .glyph { display: block; font-family: var(--serif); font-size: 20px; line-height: 1.1; color: var(--ink); }
     .secnav a.on .glyph { color: var(--sec); }
     .secnav a .n { display: block; font-weight: 500; }
@@ -205,7 +211,7 @@
   @media (max-width: 760px) { .frame-btn { display: none; } }
   body.framed { position: static; background: #2a2823; }
   body.framed .scroller, body.framed .secnav { display: none; }
-  .phone { width: 390px; height: 844px; margin: 32px auto; border-radius: 44px; background: #0b0b0b; padding: 12px; box-shadow: 0 30px 80px rgba(0,0,0,.5); position: relative; }
+  .phone { width: 390px; height: 844px; margin: 64px auto 32px; border-radius: 44px; background: #0b0b0b; padding: 12px; box-shadow: 0 30px 80px rgba(0,0,0,.5); position: relative; }
   .phone iframe { width: 100%; height: 100%; border: 0; border-radius: 34px; background: var(--paper); }
   .phone .notch { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); width: 120px; height: 30px; background: #0b0b0b; border-radius: 0 0 18px 18px; z-index: 2; }
   .frame-bar { position: fixed; top: 14px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; z-index: 9; }
@@ -217,8 +223,8 @@
   <div class="page">
     <header class="masthead">
       <div class="top">
-        <span id="dateline"></span>
-        <span>Vol. 1 · Mockup</span>
+        <span><span class="long" id="dateline"></span><span class="brief" id="datebrief"></span></span>
+        <span class="vol">Vol. 1 · Mockup</span>
         <button id="themeBtn" aria-label="Toggle theme">Theme: System</button>
       </div>
       <h1><a href="#/">The Herald</a></h1>
@@ -241,19 +247,19 @@ const TODAY = new Date(2026, 10, 10); // Tue 10 Nov 2026 (mockup is pinned so he
 const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 
 const SECTIONS = [
-  { id:'people',    name:'People',          sub:'Discipleship', glyph:'P', stand:'Who you are forming, and when you next see them.',
+  { id:'people',    name:'People',          sub:'Discipleship', glyph:'P', short:'People', stand:'Who you are forming, and when you next see them.',
     tabs:[['This Week','loop'],['Mentoring','loop'],['Notes','log']] },
-  { id:'family',    name:'Family',          sub:'Family',       glyph:'F', stand:'Memories first. The rhythm second. Nothing to optimise.',
+  { id:'family',    name:'Family',          sub:'Family',       glyph:'F', short:'Family', stand:'Memories first. The rhythm second. Nothing to optimise.',
     tabs:[['Memories','log'],['Milestones','log'],['Rhythms','loop']] },
-  { id:'home',      name:'Home & Garden',   sub:'Home',         glyph:'H', stand:'Routines Patch already keeps, chores on a cycle, and the long list of improvements.',
+  { id:'home',      name:'Home & Garden',   sub:'Home',         glyph:'H', short:'Home', stand:'Routines Patch already keeps, chores on a cycle, and the long list of improvements.',
     tabs:[['Routines','loop'],['Chores','loop'],['Improvements','backlog']] },
-  { id:'arts',      name:'Arts & Leisure',  sub:'Hobbies',      glyph:'A', stand:'What you shipped, what you built, what you practised.',
+  { id:'arts',      name:'Arts & Leisure',  sub:'Hobbies',      glyph:'A', short:'Arts', stand:'What you shipped, what you built, what you practised.',
     tabs:[['Apps','backlog'],['Gundam','backlog'],['Music','log'],['Drawing','log']] },
-  { id:'business',  name:'Business',        sub:'Work',         glyph:'B', stand:'Month-end, the inbox in numbers, and the Work bucket of your tasks.',
+  { id:'business',  name:'Business',        sub:'Work',         glyph:'B', short:'Work', stand:'Month-end, the inbox in numbers, and the Work bucket of your tasks.',
     tabs:[['Month-End','loop'],['Emails','stat'],['Tasks','backlog']] },
-  { id:'scripture', name:'Scripture',       sub:'Bible',        glyph:'S', stand:'Where you are in the reading, and what the text has been saying.',
+  { id:'scripture', name:'Scripture',       sub:'Bible',        glyph:'S', short:'Bible', stand:'Where you are in the reading, and what the text has been saying.',
     tabs:[['Reading','loop'],['Studies','log'],['Words','log']] },
-  { id:'pulpit',    name:'Pulpit',          sub:'Church',       glyph:'C', stand:'Topics become series, series become Wednesdays.',
+  { id:'pulpit',    name:'Pulpit',          sub:'Church',       glyph:'C', short:'Pulpit', stand:'Topics become series, series become Wednesdays.',
     tabs:[['Topics','backlog'],['Series','loop'],['Sermons','backlog']] },
 ];
 
@@ -365,11 +371,14 @@ function renderFront() {
   const L = headline(lead); const ls = secOf(lead.sec);
   let html = `<div class="front">
     <section class="lead" style="--sec:var(--${ls.id})">
-      <p class="kicker"><a href="#/${ls.id}">${ls.name} · ${ls.sub}</a></p>
+      <p class="kicker"><a href="#/${ls.id}">${ls.name}${ls.sub !== ls.name ? ` · ${ls.sub}` : ''}</a></p>
       <h2>${esc(L.h)}</h2>
       <p class="dek">${esc(L.p)}</p>
       <div class="byline">${pill(lead.status)} &nbsp; ${esc(lastText(lead.last))}${lead.time ? ` · ${esc(lead.time)}` : ''}</div>
-      <div class="actions"><button class="btn fill">Draft it now</button><button class="btn">Move to next week</button><button class="btn quiet">Snooze to Sunday</button></div>
+      <div class="actions">${(lead.role === 'preach' || lead.role === 'lead'
+        ? ['Draft it now', 'Move to next week', 'Snooze to Sunday']
+        : lead.status === 'drift' ? ['Reach out today', 'Log a touch', 'Let it rest']
+        : ['Mark done', 'Snooze to tomorrow', 'Skip this week']).map((t, i) => `<button class="btn ${i === 0 ? 'fill' : i === 2 ? 'quiet' : ''}">${t}</button>`).join('')}</div>
     </section>
     <section class="col">
       <div class="boxhead">Also today</div>`;
@@ -377,7 +386,7 @@ function renderFront() {
     const s = secOf(sid);
     for (const l of ls2) { const h = headline(l);
       html += `<article class="story" style="--sec:var(--${s.id})">
-        <p class="kicker"><a href="#/${s.id}">${s.name}</a></p>
+        <p class="kicker"><a href="#/${s.id}">${s.name}${s.sub !== s.name ? ` · ${s.sub}` : ''}</a></p>
         <h3><a href="#/${s.id}">${esc(h.h)}</a></h3>
         <p>${esc(h.p)}</p>
         <div class="meta">${pill(l.status)}<span>${esc(lastText(l.last))}</span></div></article>`;
@@ -460,10 +469,11 @@ function renderSection(id) {
 function renderChrome(current) {
   const due = LOOPS.filter(l => l.status === 'due').length, drift = LOOPS.filter(l => l.status === 'drift').length, ok = LOOPS.filter(l => l.status === 'ok').length;
   $('#dateline').textContent = TODAY.toLocaleDateString('en-AU', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+  $('#datebrief').textContent = TODAY.toLocaleDateString('en-AU', { weekday:'short', day:'numeric', month:'short' });
   $('#ticker').innerHTML = `<span class="due"><b>${due}</b> due</span><span class="drift"><b>${drift}</b> drifting</span><span class="ok"><b>${ok}</b> on track</span><span><b>${LOOPS.length}</b> loops</span><span>Manila 06:10</span>`;
   $('#secnav').innerHTML = SECTIONS.map(s => {
     const d = LOOPS.some(l => l.sec === s.id && l.status === 'due'), dr = LOOPS.some(l => l.sec === s.id && l.status === 'drift');
-    return `<a href="#/${s.id}" class="${current === s.id ? 'on' : ''}" style="--sec:var(--${s.id})"><span class="glyph">${s.glyph}</span><span class="n">${s.name.split(' ')[0]}</span>${d ? '<span class="dot"></span>' : dr ? '<span class="dot drift"></span>' : ''}</a>`;
+    return `<a href="#/${s.id}" class="${current === s.id ? 'on' : ''}" style="--sec:var(--${s.id})"><span class="glyph">${s.glyph}</span><span class="n">${s.name.split(' ')[0]}</span><span class="n short">${s.short}</span>${d ? '<span class="dot"></span>' : dr ? '<span class="dot drift"></span>' : ''}</a>`;
   }).join('');
 }
 
